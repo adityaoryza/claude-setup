@@ -23,16 +23,22 @@ curl -fsSL https://claude.ai/install.sh | bash
 
 Open a new terminal and run `claude` once to sign in.
 
-**2. Run the installer.** This repository is private, so sign in to GitHub first (`gh auth login`), then:
-
-```bash
-gh api repos/adityaoryza/claude-setup/contents/install.sh -H "Accept: application/vnd.github.raw" | bash
-```
-
-If you make the repository public, this works without signing in:
+**2. Run the installer:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/adityaoryza/claude-setup/main/install.sh | bash
+```
+
+Want to read it first? Open [install.sh](install.sh), or preview every command without installing anything:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/adityaoryza/claude-setup/main/install.sh | DRY_RUN=1 bash
+```
+
+If you fork this repository and keep it private, sign in with `gh auth login` and use this instead:
+
+```bash
+gh api repos/<you>/claude-setup/contents/install.sh -H "Accept: application/vnd.github.raw" | bash
 ```
 
 **3. Restart Claude Code**, then check:
