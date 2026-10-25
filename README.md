@@ -1,85 +1,129 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="claude-setup: one command, every Claude Code skill, any machine" width="100%">
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <img alt="Shell: bash" src="https://img.shields.io/badge/shell-bash-4EAA25.svg">
+  <img alt="Platforms: macOS, Linux, WSL" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20WSL-lightgrey.svg">
+  <img alt="Safe to re-run" src="https://img.shields.io/badge/re--run-safe-success.svg">
+</p>
+
 # claude-setup
 
-Pasang semua skill dan plugin Claude Code milik Aditya dengan satu perintah, di perangkat mana pun.
+My Claude Code skills and plugins, installed with a single command. Set up a new laptop, a server, or a WSL box in a minute and get the same toolbox every time.
 
-## Satu perintah
+## Quick start
 
-Repo publik:
+**1. Install Claude Code** if you do not have it yet. The desktop app works; so does the CLI:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/adityaoryza/claude-setup/main/install.sh | bash
+curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-Repo private (butuh `gh auth login`):
+Open a new terminal and run `claude` once to sign in.
+
+**2. Run the installer.** This repository is private, so sign in to GitHub first (`gh auth login`), then:
 
 ```bash
 gh api repos/adityaoryza/claude-setup/contents/install.sh -H "Accept: application/vnd.github.raw" | bash
 ```
 
-Opsi dikirim lewat `bash -s --`, misalnya semua termasuk yang opsional:
+If you make the repository public, this works without signing in:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/adityaoryza/claude-setup/main/install.sh | bash -s -- --all
+curl -fsSL https://raw.githubusercontent.com/adityaoryza/claude-setup/main/install.sh | bash
 ```
 
-Atau setelah `git clone`: `bash install.sh [--all] [--only a,b] [--skip a,b] [--list]`. `DRY_RUN=1` hanya menampilkan perintah tanpa memasang. Skrip aman dijalankan berulang.
-
-Prasyarat: Claude Code (CLI `claude` di PATH, atau aplikasi desktop yang sudah terpasang: skrip otomatis memakai CLI bawaannya di `~/.claude/remote/ccd-cli/`, atau tentukan sendiri dengan `CLAUDE_BIN=/path/ke/claude`). Tanpa keduanya, pasang CLI dengan `curl -fsSL https://claude.ai/install.sh | bash` lalu jalankan `claude` sekali untuk login ([panduan](https://code.claude.com/docs/en/setup)). Akun Pro, Max, Team, Enterprise, atau Console. Juga Node.js 18+ (npm), Python 3, dan git. RTK butuh Homebrew atau Rust.
-
-## Daftar
-
-### Desain antarmuka
-
-| Skill | Fungsi | Pasang manual | Sumber |
-| --- | --- | --- | --- |
-| frontend-design | Arah visual tegas, tipografi dan spasi konsisten, bukan tampilan generik. Resmi Anthropic. | `claude plugin marketplace add anthropics/claude-plugins-official` lalu `claude plugin install frontend-design@claude-plugins-official` | [repo](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/frontend-design) |
-| designer-skills | Alur desain bertahap: `/grill-me`, `/design-brief`, `/information-architecture`, `/design-tokens`, `/brief-to-tasks`, `/frontend-design`, `/design-review`, dan `/design-flow` yang menjalankan semuanya berurutan. Apache 2.0. | `claude plugin marketplace add julianoczkowski/designer-skills` lalu `claude plugin install designer-skills@designer-skills` | [repo](https://github.com/julianoczkowski/designer-skills) |
-| ui-ux-pro-max | Memilih palet, font, dan aturan desain sesuai jenis proyek. Butuh Python 3, skripnya tanpa panggilan jaringan. MIT. | `claude plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill` lalu `claude plugin install ui-ux-pro-max@ui-ux-pro-max-skill` | [repo](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) |
-| impeccable | 24 perintah desain (`/impeccable polish`, `audit`, `critique`, dan lain-lain) dan deteksi pola "AI slop". Apache 2.0. | `claude plugin marketplace add pbakaus/impeccable` lalu `claude plugin install impeccable@impeccable` | [repo](https://github.com/pbakaus/impeccable) |
-| skillui | CLI yang mengekstrak design system dari situs, repo, atau folder ke file yang dibaca Claude. MIT, tanpa AI dan tanpa API key. | `npm install -g skillui` | [repo](https://github.com/amaancoderx/npxskillui) |
-| playwright-cli | Claude membuka browser dan memotret hasil kerjanya sendiri. | `npm install -g @playwright/cli@latest` lalu `playwright-cli install --skills -g` | [dokumentasi](https://playwright.dev/agent-cli/skills) |
-
-### Gaya kerja
-
-| Skill | Fungsi | Pasang manual | Sumber |
-| --- | --- | --- | --- |
-| ponytail | Persona "senior dev malas": ikuti tangga keputusan (perlu ada? sudah ada di kode? stdlib? satu baris?) sebelum menulis kode, selalu selesaikan semua bagian perubahan, tidak memotong validasi, keamanan, dan aksesibilitas, dan menutup tiap balasan dengan yang dilewati. MIT. | `claude plugin marketplace add DietrichGebert/ponytail` lalu `claude plugin install ponytail@ponytail` | [repo](https://github.com/DietrichGebert/ponytail), [halaman](https://claudecowork.im/resources/ponytail-lazy-senior-dev) |
-
-### Hemat token
-
-| Skill | Fungsi | Pasang manual | Sumber |
-| --- | --- | --- | --- |
-| caveman | Claude menulis ringkas (tanpa basa-basi), kode dan perintah tetap utuh. Aktif otomatis di tiap sesi. Apache 2.0. | `claude plugin marketplace add JuliusBrussee/caveman` lalu `claude plugin install caveman@caveman` | [repo](https://github.com/JuliusBrussee/caveman) |
-| rtk (opsional) | Proxy CLI yang meringkas keluaran perintah shell sebelum masuk konteks. Hook global khusus tool Bash. Apache 2.0 untuk CLI. | `brew install rtk` (atau `cargo install --git https://github.com/rtk-ai/rtk`), cek `rtk gain`, lalu `rtk init -g` | [repo](https://github.com/rtk-ai/rtk) |
-| context-mode (opsional) | Menyimpan keluaran tool besar di database lokal dan hanya mengirim ringkasan ke konteks. Memasang 6 hook dan 11 tool MCP. Lisensi ELv2. | `claude plugin marketplace add mksglu/context-mode` lalu `claude plugin install context-mode@context-mode` | [repo](https://github.com/mksglu/context-mode) |
-
-Pemantau pemakaian tidak perlu dipasang, jalankan saat dibutuhkan: `npx ccusage@latest` ([repo](https://github.com/ryoppippi/ccusage), MIT, membaca data lokal, harga model diunduh kecuali `--offline`).
-
-## Yang perlu diketahui sebelum memasang
-
-- **Impeccable memasang hook** yang menjalankan launcher lokal pada edit file UI dan saat sesi berhenti, dan bisa mengunduh mesinnya ke `~/.impeccable`. Telemetri anonim aktif secara bawaan. Skrip ini mematikannya dengan menambah `DO_NOT_TRACK=1` dan `IMPECCABLE_NO_TELEMETRY=1` ke blok `env` di `~/.claude/settings.json` (cadangan disimpan sebagai `settings.json.bak`). Lewati dengan `NO_TELEMETRY_CONFIG=1`.
-- **rtk dan context-mode opsional** (`--all`) karena mengubah cara Claude bekerja secara global: rtk menulis ulang perintah Bash lewat hook, context-mode mendaftarkan 6 hook dan server MCP. Keduanya menyasar masalah yang mirip, jadi pasang salah satu dulu. Langkah `rtk init -g` interaktif, jadi dijalankan manual.
-- **caveman** mengubah gaya tulisan Claude menjadi sangat ringkas di semua sesi, termasuk subagen. Matikan dengan `claude plugin uninstall caveman@caveman`. Jalur `npx @caveman-ai/cli` mengirim statistik pemakaian secara bawaan; skrip ini memakai jalur plugin.
-- **designer-skills dan frontend-design resmi sama-sama punya skill bernama `frontend-design`.** Keduanya terpasang di namespace plugin masing-masing dan bisa tumpang tindih. Kalau hasilnya membingungkan, pakai salah satu (`claude plugin uninstall frontend-design@claude-plugins-official`). Plugin ini mengikuti commit terbaru di `main`, jadi isinya bisa berubah; baca sebelum memperbarui.
-- **ponytail dan caveman sama-sama mengubah gaya kerja Claude di semua sesi** (ponytail menahan kode berlebih, caveman memangkas kata). Keduanya bisa dipakai bersamaan; kalau jawaban terasa terlalu irit, matikan salah satu dengan `claude plugin uninstall`.
-- Skill dan plugin pihak ketiga adalah instruksi yang memengaruhi perilaku Claude. Baca `SKILL.md`-nya sebelum memasang yang baru.
-- Skill terbaca setelah Claude Code dimulai ulang. Cek dengan `claude plugin list`.
-
-## Perbarui dan hapus
-
-Sintaks bisa sedikit berbeda antar versi Claude Code; cek dengan `claude plugin --help`.
+**3. Restart Claude Code**, then check:
 
 ```bash
-claude plugin marketplace update            # tarik versi terbaru semua marketplace
-claude plugin update caveman@caveman        # perbarui satu plugin
-claude plugin uninstall caveman@caveman     # hapus satu plugin
-npm uninstall -g skillui @playwright/cli    # hapus CLI global
+claude plugin list
 ```
 
-## Menambah skill baru
+To pass options through a pipe, add `-s --` after `bash`, for example `... | bash -s -- --all`.
 
-Tambahkan fungsi `s_nama()` di `install.sh` (pola sama dengan `s_caveman`), daftarkan namanya di `STANDARD` atau `OPTIONAL`, panggil lewat `step nama s_nama`, lalu tambahkan barisnya di tabel README ini.
+## What you get
 
-## Lisensi
+### Interface design
 
-MIT untuk skrip ini. Setiap skill memakai lisensinya sendiri (lihat tabel).
+| Name | What it does | Source |
+| --- | --- | --- |
+| `frontend-design` | Official Anthropic skill: a committed visual direction, a real type scale, and a spacing system instead of generic output. | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/frontend-design) |
+| `designer-skills` | A staged design process: `/grill-me`, `/design-brief`, `/information-architecture`, `/design-tokens`, `/brief-to-tasks`, `/frontend-design`, `/design-review`, plus `/design-flow` to run them in order. | [julianoczkowski/designer-skills](https://github.com/julianoczkowski/designer-skills) |
+| `ui-ux-pro-max` | Picks palettes, fonts, and design rules to fit the kind of project. Needs Python 3; its scripts make no network calls. | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) |
+| `impeccable` | 24 design commands (`/impeccable polish`, `audit`, `critique`, ...) and detection of common "AI slop" patterns. | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) |
+| `skillui` | CLI that extracts a design system from a website, repo, or folder into files Claude reads. | [amaancoderx/npxskillui](https://github.com/amaancoderx/npxskillui) |
+| `playwright-cli` | Lets Claude open a browser and screenshot its own work. | [Playwright docs](https://playwright.dev/agent-cli/skills) |
+
+### Working style
+
+| Name | What it does | Source |
+| --- | --- | --- |
+| `ponytail` | A "lazy senior dev" persona: skip what nobody asked for, reuse what exists, never cut validation, security, or accessibility, and end each reply by stating what was skipped. | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) |
+
+### Token savings
+
+| Name | What it does | Source |
+| --- | --- | --- |
+| `caveman` | Makes Claude write tersely while keeping code and commands intact. | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) |
+| `rtk` *(optional)* | CLI proxy that condenses shell output before it reaches the context. Global hook for the Bash tool. | [rtk-ai/rtk](https://github.com/rtk-ai/rtk) |
+| `context-mode` *(optional)* | Keeps large tool output in a local database and sends only a summary. Installs 6 hooks and an MCP server. | [mksglu/context-mode](https://github.com/mksglu/context-mode) |
+
+Usage reports are not installed; run them when you need them: `npx ccusage@latest` ([ryoppippi/ccusage](https://github.com/ryoppippi/ccusage)).
+
+Everything above is installed by default except the two items marked optional. Add them with `--all`.
+
+## Options
+
+```bash
+bash install.sh                         # standard set
+bash install.sh --all                   # standard set plus rtk and context-mode
+bash install.sh --only impeccable,rtk   # only these
+bash install.sh --skip skillui          # standard set without these
+bash install.sh --list                  # show what is available
+DRY_RUN=1 bash install.sh               # print the commands, install nothing
+```
+
+| Variable | Effect |
+| --- | --- |
+| `DRY_RUN=1` | Print every command without running it. |
+| `NO_TELEMETRY_CONFIG=1` | Do not edit `~/.claude/settings.json` (see the Impeccable note below). |
+| `CLAUDE_BIN=/path/to/claude` | Use a specific Claude Code binary. |
+
+## How it works
+
+- **Finds Claude Code for you.** It uses `claude` on your `PATH`, or the CLI bundled with the desktop app, or the path in `CLAUDE_BIN`. If none exists it prints the install command and stops.
+- **Safe to re-run.** Already-installed plugins are not an error, and a summary lists what was installed, skipped, or failed. The exit code is non-zero if anything failed.
+- **No `sudo`.** If the global npm folder is not writable, npm CLIs go to `~/.npm-global` instead, and the script tells you how to add it to your `PATH`.
+- **Plugins install at user scope**, so they apply to every project on the machine.
+
+## Read this before installing
+
+- **Impeccable installs hooks.** They run a local launcher on UI file edits and when a session stops, and may download an engine to `~/.impeccable`. Its anonymous telemetry is on by default, so this script turns it off by adding `DO_NOT_TRACK=1` and `IMPECCABLE_NO_TELEMETRY=1` to the `env` block of `~/.claude/settings.json`. A backup is saved as `settings.json.bak`. Skip this with `NO_TELEMETRY_CONFIG=1`.
+- **`rtk` and `context-mode` are optional** because they change how Claude works everywhere: rtk rewrites Bash commands through a hook, and context-mode registers 6 hooks and an MCP server. They solve a similar problem, so try one first. `rtk init -g` is interactive and is left as a manual step.
+- **`caveman` and `ponytail` both change Claude's style in every session.** They work together, but if replies feel too terse, remove one.
+- **Two skills are named `frontend-design`** (the official one and the one in `designer-skills`). Each lives in its own plugin namespace and they can overlap. If that is confusing, remove one: `claude plugin uninstall frontend-design@claude-plugins-official`.
+- **Third-party skills are instructions that steer Claude.** Read a skill's `SKILL.md` before adding a new one.
+
+## Update and remove
+
+```bash
+claude plugin marketplace update            # refresh every marketplace listing
+claude plugin update caveman@caveman        # update one plugin
+claude plugin uninstall caveman@caveman     # remove one plugin
+npm uninstall -g skillui @playwright/cli    # remove the npm CLIs
+```
+
+Plugin command syntax can differ between Claude Code versions; check `claude plugin --help`.
+
+## Add your own
+
+1. Add a function `s_yourname()` to `install.sh` (copy the pattern of `s_caveman`).
+2. List the name in `STANDARD` or `OPTIONAL`.
+3. Call it with `step yourname s_yourname`.
+4. Add a row to the right table above.
+
+## License
+
+[MIT](LICENSE) for this repository. Each skill and plugin keeps its own license; see the Source column.

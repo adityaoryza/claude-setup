@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Pasang semua skill Claude Code milik Aditya dengan satu perintah. Aman dijalankan berulang.
+# claude-setup: install a curated set of Claude Code skills and plugins with one command.
+# Safe to re-run.
 #
-#   bash install.sh                      pasang set standar
-#   bash install.sh --all                set standar + yang opsional (rtk, context-mode: memasang hook global)
-#   bash install.sh --only impeccable    pasang yang dipilih saja (pisahkan dengan koma)
-#   bash install.sh --skip skillui       pasang set standar kecuali yang disebut
-#   bash install.sh --list               tampilkan daftar skill
-#   DRY_RUN=1 bash install.sh            hanya tampilkan perintah, tanpa memasang
-#   NO_TELEMETRY_CONFIG=1 bash install.sh   jangan ubah ~/.claude/settings.json
+#   bash install.sh                         install the standard set
+#   bash install.sh --all                   standard set plus optional extras (rtk, context-mode: global hooks)
+#   bash install.sh --only impeccable,rtk   install only the named items (comma-separated)
+#   bash install.sh --skip skillui          install the standard set except the named items
+#   bash install.sh --list                  list available items
+#   DRY_RUN=1 bash install.sh               print the commands without running them
+#   NO_TELEMETRY_CONFIG=1 bash install.sh   do not edit ~/.claude/settings.json
+#   CLAUDE_BIN=/path/to/claude bash install.sh   use a specific Claude Code binary
 set -uo pipefail
 
 STANDARD="frontend-design designer-skills ui-ux-pro-max impeccable playwright-cli skillui caveman ponytail"
@@ -20,26 +22,26 @@ while [ $# -gt 0 ]; do
     --skip) SKIP="${2:-}"; shift 2 ;;
     --list) LIST=1; shift ;;
     --all) ALL="$STANDARD $OPTIONAL"; shift ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
-    *) echo "Opsi tidak dikenal: $1" >&2; exit 2 ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
 if [ "$LIST" = 1 ]; then
   for s in $STANDARD; do echo "$s"; done
-  for s in $OPTIONAL; do echo "$s  (opsional, --all)"; done
+  for s in $OPTIONAL; do echo "$s  (optional, --all)"; done
   exit 0
 fi
 
 DRY_RUN="${DRY_RUN:-0}"
 FAILED=(); DONE=(); SKIPPED=()
 b() { printf '\033[1m%s\033[0m\n' "$*"; }
-ok() { printf '  \033[32mok\033[0m  %s\n' "$*"; }
-warn() { printf '  \033[33m!!\033[0m  %s\n' "$*"; }
-bad() { printf '  \033[31mgagal\033[0m  %s\n' "$*"; }
+ok() { printf '  \033[32mok\033[0m      %s\n' "$*"; }
+warn() { printf '  \033[33m!!\033[0m      %s\n' "$*"; }
+bad() { printf '  \033[31mfailed\033[0m  %s\n' "$*"; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# CLI yang dipakai: CLAUDE_BIN, lalu `claude` di PATH, lalu CLI bawaan aplikasi desktop (versi terbaru)
+# Claude Code binary: CLAUDE_BIN, then `claude` on PATH, then the CLI bundled with the desktop app (newest version)
 CLAUDE="${CLAUDE_BIN:-}"
 if [ -z "$CLAUDE" ]; then
   if have claude; then CLAUDE="claude"
@@ -54,12 +56,12 @@ wanted() {
   return 0
 }
 
-# jalankan perintah; DRY_RUN=1 hanya mencetak. Keluaran gagal tampil agar mudah dilacak.
+# Run a command (DRY_RUN=1 only prints it). Output is shown on failure so problems are easy to trace.
 run() {
   if [ "$DRY_RUN" = 1 ]; then echo "  \$ $*"; return 0; fi
   local out; out="$("$@" 2>&1)"; local rc=$?
   if [ $rc -ne 0 ]; then
-    # menambah marketplace atau plugin yang sudah ada bukan kegagalan
+    # adding a marketplace or plugin that already exists is not a failure
     if printf '%s' "$out" | grep -qiE 'already (exists|installed|added)'; then return 0; fi
     printf '%s\n' "$out" | sed 's/^/        /' >&2
     return $rc
@@ -67,61 +69,61 @@ run() {
   return 0
 }
 
-step() { # step <nama> <fungsi>
+step() { # step <name> <function>
   wanted "$1" || { case ",$SKIP," in *",$1,"*) SKIPPED+=("$1") ;; esac; return; }
   b "[$1]"
-  if "$2"; then DONE+=("$1"); ok "selesai"; else FAILED+=("$1"); bad "$1 (lihat pesan di atas)"; fi
+  if "$2"; then DONE+=("$1"); ok "done"; else FAILED+=("$1"); bad "$1 (see the messages above)"; fi
 }
 
 need_claude() {
   if [ "$DRY_RUN" = 1 ]; then return 0; fi
   if [ -n "$CLAUDE" ] && { [ "$CLAUDE" = claude ] || [ -x "$CLAUDE" ]; }; then
-    [ "$CLAUDE" = claude ] || [ -n "${CLAUDE_NOTED:-}" ] || { warn "memakai CLI bawaan aplikasi: $CLAUDE"; CLAUDE_NOTED=1; }
+    [ "$CLAUDE" = claude ] || [ -n "${CLAUDE_NOTED:-}" ] || { warn "using the CLI bundled with the desktop app: $CLAUDE"; CLAUDE_NOTED=1; }
     return 0
   fi
-  warn "CLI 'claude' tidak ditemukan (dan CLI bawaan aplikasi desktop juga tidak ada). Pasang (macOS, Linux, WSL):"
+  warn "Claude Code CLI not found (and no desktop-app CLI either). Install it (macOS, Linux, WSL):"
   warn "  curl -fsSL https://claude.ai/install.sh | bash"
-  warn "lalu buka terminal baru, jalankan 'claude' sekali untuk login, dan ulangi skrip ini. Panduan: https://code.claude.com/docs/en/setup"
-  warn "atau tentukan sendiri lokasinya: CLAUDE_BIN=/path/ke/claude bash install.sh"
+  warn "then open a new terminal, run 'claude' once to sign in, and re-run this script. Docs: https://code.claude.com/docs/en/setup"
+  warn "or point to it yourself: CLAUDE_BIN=/path/to/claude bash install.sh"
   return 1
 }
 need_npm() {
   if have npm || [ "$DRY_RUN" = 1 ]; then return 0; fi
-  warn "npm tidak ditemukan. Pasang Node.js 18 atau lebih baru: https://nodejs.org"
+  warn "npm not found. Install Node.js 18 or newer: https://nodejs.org"
   return 1
 }
-npm_global() { # npm_global <paket>
-  # bila folder global npm tidak bisa ditulis (EACCES), pasang ke ~/.npm-global tanpa sudo
+npm_global() { # npm_global <package>
+  # if the global npm directory is not writable (EACCES), install to ~/.npm-global without sudo
   if [ "$DRY_RUN" != 1 ] && [ -z "${NPM_CONFIG_PREFIX:-}" ]; then
     local pfx; pfx="$(npm config get prefix 2>/dev/null)"
     if [ -n "$pfx" ] && [ ! -w "$pfx/lib/node_modules" ] && [ ! -w "$pfx" ]; then
       export NPM_CONFIG_PREFIX="$HOME/.npm-global"; mkdir -p "$NPM_CONFIG_PREFIX"
       export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-      warn "folder global npm ($pfx) tidak bisa ditulis; memakai $NPM_CONFIG_PREFIX"
+      warn "global npm directory ($pfx) is not writable; using $NPM_CONFIG_PREFIX"
       NEED_PATH_NOTE=1
     fi
   fi
   run npm install -g "$1"
 }
-plugin() { # plugin <sumber-marketplace> <plugin@marketplace>
+plugin() { # plugin <marketplace-source> <plugin@marketplace>
   need_claude || return 1
   run "${CLAUDE:-claude}" plugin marketplace add "$1" && run "${CLAUDE:-claude}" plugin install "$2"
 }
 
 s_frontend_design() { plugin anthropics/claude-plugins-official frontend-design@claude-plugins-official; }
 
-# alur desain bertahap: grill-me, design-brief, information-architecture, design-tokens, brief-to-tasks, frontend-design, design-review
+# staged design workflow: grill-me, design-brief, information-architecture, design-tokens, brief-to-tasks, frontend-design, design-review
 s_designer_skills() { plugin julianoczkowski/designer-skills designer-skills@designer-skills; }
 
 s_ui_ux_pro_max() {
-  have python3 || [ "$DRY_RUN" = 1 ] || warn "python3 tidak ditemukan; skill ini butuh Python 3 untuk skrip pencariannya."
+  have python3 || [ "$DRY_RUN" = 1 ] || warn "python3 not found; this skill needs Python 3 for its search script."
   plugin nextlevelbuilder/ui-ux-pro-max-skill ui-ux-pro-max@ui-ux-pro-max-skill
 }
 
 s_impeccable() {
   plugin pbakaus/impeccable impeccable@impeccable || return 1
-  warn "Impeccable memasang hook yang menjalankan launcher lokal dan bisa mengunduh mesinnya ke ~/.impeccable."
-  warn "Telemetri anonim aktif secara bawaan; skrip ini mematikannya (lihat langkah [telemetri])."
+  warn "Impeccable installs hooks that run a local launcher and may download its engine to ~/.impeccable."
+  warn "Its anonymous telemetry is on by default; this script turns it off (see the [telemetry] step)."
   return 0
 }
 
@@ -129,45 +131,45 @@ s_playwright_cli() {
   need_npm || return 1
   npm_global @playwright/cli@latest || return 1
   if have playwright-cli || [ "$DRY_RUN" = 1 ]; then run playwright-cli install --skills -g
-  else warn "playwright-cli tidak ada di PATH setelah install; buka terminal baru lalu: playwright-cli install --skills -g"; return 1; fi
+  else warn "playwright-cli is not on PATH after install; open a new terminal and run: playwright-cli install --skills -g"; return 1; fi
 }
 
 s_skillui() { need_npm || return 1; npm_global skillui; }
 
-# membuat Claude menulis ringkas (hemat token keluaran); aktif otomatis di tiap sesi
+# makes Claude write tersely (saves output tokens); active in every session
 s_caveman() { plugin JuliusBrussee/caveman caveman@caveman; }
 
-# persona "senior dev malas": solusi terkecil yang benar (hindari fitur tak diminta, pakai yang sudah ada), tiap balasan menyebut yang dilewati
+# "lazy senior dev" persona: smallest correct solution, reuse what exists, every reply states what was skipped
 s_ponytail() { plugin DietrichGebert/ponytail ponytail@ponytail; }
 
-# menyaring keluaran MCP dan tool besar ke database lokal; memasang 6 hook dan server MCP
+# keeps large tool and MCP output in a local database; installs 6 hooks and an MCP server
 s_context_mode() { plugin mksglu/context-mode context-mode@context-mode; }
 
-# proxy CLI yang meringkas keluaran perintah shell; hook global untuk Bash. Binarnya dipasang di sini,
-# hook-nya (interaktif) dipasang manual dengan: rtk init -g
+# CLI proxy that condenses shell command output; global hook for the Bash tool. The binary is installed here,
+# the (interactive) hook setup is a manual step: rtk init -g
 s_rtk() {
   if ! have rtk && [ "$DRY_RUN" != 1 ]; then
     if have brew; then run brew install rtk || return 1
     elif have cargo; then run cargo install --git https://github.com/rtk-ai/rtk || return 1
     else
-      warn "butuh Homebrew atau Rust (cargo). Alternatif resmi: lihat https://github.com/rtk-ai/rtk"
+      warn "needs Homebrew or Rust (cargo). Official alternatives: https://github.com/rtk-ai/rtk"
       return 1
     fi
-  elif [ "$DRY_RUN" = 1 ]; then echo "  \$ brew install rtk   (atau: cargo install --git https://github.com/rtk-ai/rtk)"
+  elif [ "$DRY_RUN" = 1 ]; then echo "  \$ brew install rtk   (or: cargo install --git https://github.com/rtk-ai/rtk)"
   fi
   if [ "$DRY_RUN" != 1 ]; then
-    # ada proyek lain bernama "rtk" di crates.io; paket yang benar punya perintah `rtk gain`
-    rtk gain >/dev/null 2>&1 || { warn "'rtk gain' gagal: kemungkinan paket rtk yang salah terpasang."; return 1; }
+    # another project named "rtk" exists on crates.io; the right one provides `rtk gain`
+    rtk gain >/dev/null 2>&1 || { warn "'rtk gain' failed: the wrong rtk package may be installed."; return 1; }
   fi
-  warn "langkah manual terakhir (interaktif): rtk init -g   lalu mulai ulang Claude Code"
+  warn "last manual (interactive) step: rtk init -g, then restart Claude Code"
 }
 
-# matikan telemetri Impeccable untuk semua sesi Claude Code lewat blok "env" di settings.json
-s_telemetri() {
-  [ "${NO_TELEMETRY_CONFIG:-0}" = 1 ] && { warn "dilewati (NO_TELEMETRY_CONFIG=1)"; return 0; }
-  have python3 || { warn "python3 tidak ada; set manual DO_NOT_TRACK=1 dan IMPECCABLE_NO_TELEMETRY=1"; return 1; }
+# turn off Impeccable telemetry for every Claude Code session via the "env" block in settings.json
+s_telemetry() {
+  [ "${NO_TELEMETRY_CONFIG:-0}" = 1 ] && { warn "skipped (NO_TELEMETRY_CONFIG=1)"; return 0; }
+  have python3 || { warn "python3 not found; set DO_NOT_TRACK=1 and IMPECCABLE_NO_TELEMETRY=1 manually"; return 1; }
   local f="$HOME/.claude/settings.json"
-  if [ "$DRY_RUN" = 1 ]; then echo "  \$ tambahkan env DO_NOT_TRACK=1 dan IMPECCABLE_NO_TELEMETRY=1 ke $f"; return 0; fi
+  if [ "$DRY_RUN" = 1 ]; then echo "  \$ add env DO_NOT_TRACK=1 and IMPECCABLE_NO_TELEMETRY=1 to $f"; return 0; fi
   mkdir -p "$HOME/.claude"
   python3 - "$f" <<'PY'
 import json, os, shutil, sys
@@ -177,9 +179,9 @@ if os.path.exists(p):
     try:
         data = json.load(open(p))
     except Exception:
-        print("settings.json bukan JSON valid; tidak diubah", file=sys.stderr); sys.exit(1)
+        print("settings.json is not valid JSON; left unchanged", file=sys.stderr); sys.exit(1)
     if not isinstance(data, dict):
-        print("settings.json bukan objek; tidak diubah", file=sys.stderr); sys.exit(1)
+        print("settings.json is not a JSON object; left unchanged", file=sys.stderr); sys.exit(1)
 env = data.setdefault("env", {})
 want = {"DO_NOT_TRACK": "1", "IMPECCABLE_NO_TELEMETRY": "1"}
 if all(env.get(k) == v for k, v in want.items()):
@@ -192,11 +194,11 @@ open(p, "a").write("\n")
 PY
 }
 
-b "Setup skill Claude Code"
-[ "$DRY_RUN" = 1 ] && warn "DRY_RUN=1: tidak ada yang dipasang."
+b "Claude Code skill setup"
+[ "$DRY_RUN" = 1 ] && warn "DRY_RUN=1: nothing will be installed."
 
 step frontend-design s_frontend_design
-step designer-skills  s_designer_skills
+step designer-skills s_designer_skills
 step ui-ux-pro-max   s_ui_ux_pro_max
 step impeccable      s_impeccable
 step playwright-cli  s_playwright_cli
@@ -205,18 +207,18 @@ step caveman         s_caveman
 step ponytail        s_ponytail
 step rtk             s_rtk
 step context-mode    s_context_mode
-if wanted impeccable; then b "[telemetri]"; if s_telemetri; then ok "telemetri Impeccable dimatikan"; else FAILED+=("telemetri"); fi; fi
+if wanted impeccable; then b "[telemetry]"; if s_telemetry; then ok "Impeccable telemetry is off"; else FAILED+=("telemetry"); fi; fi
 
 echo
-b "Ringkasan"
-[ ${#DONE[@]} -gt 0 ]    && ok "terpasang: ${DONE[*]}"
-[ ${#SKIPPED[@]} -gt 0 ] && warn "dilewati: ${SKIPPED[*]}"
-[ ${#FAILED[@]} -gt 0 ]  && bad "gagal: ${FAILED[*]}"
+b "Summary"
+[ ${#DONE[@]} -gt 0 ]    && ok "installed: ${DONE[*]}"
+[ ${#SKIPPED[@]} -gt 0 ] && warn "skipped: ${SKIPPED[*]}"
+[ ${#FAILED[@]} -gt 0 ]  && bad "failed: ${FAILED[*]}"
 if [ "$DRY_RUN" != 1 ] && [ ${#DONE[@]} -gt 0 ]; then
-  if [ -n "${NEED_PATH_NOTE:-}" ]; then
-    echo "CLI npm ada di ~/.npm-global/bin. Agar permanen, jalankan sekali:"
+  if [ -n "${NEED_PATH_NOTE:-}" ] && ! grep -qs 'npm-global' "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.profile"; then
+    echo "npm CLIs live in ~/.npm-global/bin. To make that permanent, run once:"
     echo "  echo 'export PATH=\"\$HOME/.npm-global/bin:\$PATH\"' >> ~/.zshrc"
   fi
-  echo "Mulai ulang Claude Code agar skill terbaca. Cek dengan: ${CLAUDE:-claude} plugin list"
+  echo "Restart Claude Code so the skills load. Check with: ${CLAUDE:-claude} plugin list"
 fi
 [ ${#FAILED[@]} -eq 0 ]

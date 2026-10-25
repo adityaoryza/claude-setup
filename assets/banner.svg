@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="t d">
+  <title id="t">claude-setup</title>
+  <desc id="d">One command installs a curated set of Claude Code skills and plugins on any machine.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B1530"/>
+      <stop offset="1" stop-color="#2B1F4A"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFB86B"/>
+      <stop offset="1" stop-color="#FF7A59"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="360" rx="28" fill="url(#bg)"/>
+  <g opacity=".08" fill="#fff">
+    <circle cx="1120" cy="60" r="140"/>
+    <circle cx="1220" cy="300" r="90"/>
+  </g>
+
+  <!-- mark: terminal window with a prompt -->
+  <g transform="translate(88 92)">
+    <rect width="132" height="108" rx="20" fill="#0F0B1F" stroke="url(#accent)" stroke-width="5"/>
+    <circle cx="24" cy="24" r="6" fill="#FF7A59"/>
+    <circle cx="44" cy="24" r="6" fill="#FFB86B"/>
+    <circle cx="64" cy="24" r="6" fill="#6FD6A5"/>
+    <path d="M28 58l22 16-22 16" fill="none" stroke="url(#accent)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M64 92h40" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <text x="260" y="148" font-family="'SF Mono','JetBrains Mono',Menlo,Consolas,monospace" font-size="72" font-weight="700" fill="#fff">claude-setup</text>
+  <text x="262" y="196" font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="30" fill="#CFC6F0">One command. Every Claude Code skill. Any machine.</text>
+
+  <!-- chips -->
+  <g font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="20" font-weight="600" fill="#fff">
+    <g transform="translate(88 258)">
+      <rect width="150" height="44" rx="22" fill="#3A2C66"/><text x="75" y="29" text-anchor="middle">Design</text>
+      <rect x="166" width="170" height="44" rx="22" fill="#3A2C66"/><text x="251" y="29" text-anchor="middle">Workflow</text>
+      <rect x="352" width="210" height="44" rx="22" fill="#3A2C66"/><text x="457" y="29" text-anchor="middle">Token savings</text>
+      <rect x="578" width="210" height="44" rx="22" fill="#3A2C66"/><text x="683" y="29" text-anchor="middle">Browser tools</text>
+    </g>
+  </g>
+</svg>
