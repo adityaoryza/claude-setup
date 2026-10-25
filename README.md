@@ -56,6 +56,16 @@ To pass options through a pipe, add `-s --` after `bash`, for example `... | bas
 | `skillui` | CLI that extracts a design system from a website, repo, or folder into files Claude reads. | [amaancoderx/npxskillui](https://github.com/amaancoderx/npxskillui) |
 | `playwright-cli` | Lets Claude open a browser and screenshot its own work. | [Playwright docs](https://playwright.dev/agent-cli/skills) |
 
+### Engineering workflow
+
+| Name | What it does | Source |
+| --- | --- | --- |
+| `superpowers` | The end-to-end flow: `brainstorming`, `writing-plans`, `executing-plans`, `test-driven-development` (red-green-refactor), `systematic-debugging`, `verification-before-completion`, `requesting-code-review`, `using-git-worktrees`, `subagent-driven-development`, `finishing-a-development-branch`. Skills trigger automatically. | [obra/superpowers](https://github.com/obra/superpowers) |
+| `code-review` | `/code-review` runs 4 parallel agents on a pull request and posts only findings scored 80 or higher. Needs the GitHub CLI signed in (`gh auth login`). | [official plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review) |
+| `commit-commands` | Commit, push, and open a pull request with one command. | [official plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/commit-commands) |
+| `feature-dev` *(optional)* | `/feature-dev` runs a guided 7-phase flow: discovery, codebase exploration, clarifying questions, architecture design, implementation, review, summary. No hooks. Overlaps with `superpowers`. | [official plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/feature-dev) |
+| `security-guidance` *(optional)* | Warns on risky patterns when files are edited, reviews each turn's diff, and reviews commits. Installs hooks and sends diff hunks to the model. | [official plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/security-guidance) |
+
 ### Working style
 
 | Name | What it does | Source |
@@ -72,13 +82,13 @@ To pass options through a pipe, add `-s --` after `bash`, for example `... | bas
 
 Usage reports are not installed; run them when you need them: `npx ccusage@latest` ([ryoppippi/ccusage](https://github.com/ryoppippi/ccusage)).
 
-Everything above is installed by default except the two items marked optional. Add them with `--all`.
+Everything above is installed by default except the items marked optional. Add them with `--all`.
 
 ## Options
 
 ```bash
 bash install.sh                         # standard set
-bash install.sh --all                   # standard set plus rtk and context-mode
+bash install.sh --all                   # standard set plus the optional items
 bash install.sh --only impeccable,rtk   # only these
 bash install.sh --skip skillui          # standard set without these
 bash install.sh --list                  # show what is available
@@ -91,6 +101,8 @@ DRY_RUN=1 bash install.sh               # print the commands, install nothing
 | `NO_TELEMETRY_CONFIG=1` | Do not edit `~/.claude/settings.json` (see the Impeccable note below). |
 | `CLAUDE_BIN=/path/to/claude` | Use a specific Claude Code binary. |
 
+A suggested flow with the standard set: design (`designer-skills`, `impeccable`) → brainstorm and plan (`superpowers`) → test-first implementation (`superpowers`) → review (`code-review`) → commit (`commit-commands`).
+
 ## How it works
 
 - **Finds Claude Code for you.** It uses `claude` on your `PATH`, or the CLI bundled with the desktop app, or the path in `CLAUDE_BIN`. If none exists it prints the install command and stops.
@@ -101,6 +113,9 @@ DRY_RUN=1 bash install.sh               # print the commands, install nothing
 ## Read this before installing
 
 - **Impeccable installs hooks.** They run a local launcher on UI file edits and when a session stops, and may download an engine to `~/.impeccable`. Its anonymous telemetry is on by default, so this script turns it off by adding `DO_NOT_TRACK=1` and `IMPECCABLE_NO_TELEMETRY=1` to the `env` block of `~/.claude/settings.json`. A backup is saved as `settings.json.bak`. Skip this with `NO_TELEMETRY_CONFIG=1`.
+- **`superpowers` changes how Claude works in every session.** Its skills trigger automatically and are meant as mandatory workflows (for example, test-first development), not suggestions. Its README does not fully describe its hooks, so read the repository before relying on it.
+- **`superpowers` and `feature-dev` overlap** (both clarify, design, and review), and `superpowers` also overlaps with `/grill-me` from `designer-skills`. Pick one as your main driver. `superpowers` is the default here; `feature-dev` is kept optional for exploring an unfamiliar codebase.
+- **`security-guidance` installs hooks and sends diffs to the model** at the end of each turn and on commit, which adds usage. Disable parts with `ENABLE_STOP_REVIEW=0` or `ENABLE_COMMIT_REVIEW=0`, or everything with `SECURITY_GUIDANCE_DISABLE=1`. It is a best-effort aid, not a replacement for human review or SAST.
 - **`rtk` and `context-mode` are optional** because they change how Claude works everywhere: rtk rewrites Bash commands through a hook, and context-mode registers 6 hooks and an MCP server. They solve a similar problem, so try one first. `rtk init -g` is interactive and is left as a manual step.
 - **`caveman` and `ponytail` both change Claude's style in every session.** They work together, but if replies feel too terse, remove one.
 - **Two skills are named `frontend-design`** (the official one and the one in `designer-skills`). Each lives in its own plugin namespace and they can overlap. If that is confusing, remove one: `claude plugin uninstall frontend-design@claude-plugins-official`.

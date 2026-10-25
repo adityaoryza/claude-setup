@@ -12,8 +12,8 @@
 #   CLAUDE_BIN=/path/to/claude bash install.sh   use a specific Claude Code binary
 set -uo pipefail
 
-STANDARD="frontend-design designer-skills ui-ux-pro-max impeccable playwright-cli skillui caveman ponytail"
-OPTIONAL="rtk context-mode"
+STANDARD="frontend-design designer-skills ui-ux-pro-max impeccable playwright-cli skillui superpowers code-review commit-commands caveman ponytail"
+OPTIONAL="feature-dev security-guidance rtk context-mode"
 ALL="$STANDARD"
 ONLY=""; SKIP=""; LIST=0
 while [ $# -gt 0 ]; do
@@ -110,10 +110,36 @@ plugin() { # plugin <marketplace-source> <plugin@marketplace>
   run "${CLAUDE:-claude}" plugin marketplace add "$1" && run "${CLAUDE:-claude}" plugin install "$2"
 }
 
-s_frontend_design() { plugin anthropics/claude-plugins-official frontend-design@claude-plugins-official; }
+plugin_official() { plugin anthropics/claude-plugins-official "$1@claude-plugins-official"; }
+
+s_frontend_design() { plugin_official frontend-design; }
 
 # staged design workflow: grill-me, design-brief, information-architecture, design-tokens, brief-to-tasks, frontend-design, design-review
 s_designer_skills() { plugin julianoczkowski/designer-skills designer-skills@designer-skills; }
+
+# end-to-end engineering workflow: brainstorming, plans, TDD, systematic debugging, verification, review, worktrees.
+# Skills trigger automatically and are mandatory workflows, so Claude behaves differently in every session.
+s_superpowers() { plugin_official superpowers; }
+
+# /code-review: 4 parallel agents review a PR, only findings scored 80+ are posted (needs `gh` signed in)
+s_code_review() {
+  have gh || [ "$DRY_RUN" = 1 ] || warn "gh not found; /code-review needs the GitHub CLI signed in (gh auth login)."
+  plugin_official code-review
+}
+
+# commit, push, and open a PR with one command
+s_commit_commands() { plugin_official commit-commands; }
+
+# /feature-dev: guided 7-phase feature workflow (explore, clarify, design, implement, review); overlaps with superpowers
+s_feature_dev() { plugin_official feature-dev; }
+
+# hooks that review edits, each turn's diff, and commits for security issues; diffs are sent to the model endpoint
+s_security_guidance() {
+  plugin_official security-guidance || return 1
+  warn "security-guidance sends diff hunks to the model on turn end and on git commit (extra usage)."
+  warn "Disable parts with ENABLE_STOP_REVIEW=0 / ENABLE_COMMIT_REVIEW=0, or all with SECURITY_GUIDANCE_DISABLE=1."
+  return 0
+}
 
 s_ui_ux_pro_max() {
   have python3 || [ "$DRY_RUN" = 1 ] || warn "python3 not found; this skill needs Python 3 for its search script."
@@ -203,8 +229,13 @@ step ui-ux-pro-max   s_ui_ux_pro_max
 step impeccable      s_impeccable
 step playwright-cli  s_playwright_cli
 step skillui         s_skillui
+step superpowers      s_superpowers
+step code-review      s_code_review
+step commit-commands  s_commit_commands
 step caveman         s_caveman
 step ponytail        s_ponytail
+step feature-dev      s_feature_dev
+step security-guidance s_security_guidance
 step rtk             s_rtk
 step context-mode    s_context_mode
 if wanted impeccable; then b "[telemetry]"; if s_telemetry; then ok "Impeccable telemetry is off"; else FAILED+=("telemetry"); fi; fi
